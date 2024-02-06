@@ -1,0 +1,29 @@
+name: API Call and Append Data
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-api-and-append-data:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Make API Call
+      id: api-call
+      uses: fjogeleit/http-request-action@master
+      with:
+        url: 'https://your-api-endpoint.com/data'
+        method: 'GET'
+    
+    - name: Append Response to File
+      run: |
+        mkdir -p data
+        echo '${{ steps.api-call.outputs.response }}' >> data/api-response.jsonl
+
+    - name: Commit and Push if Changed
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git diff --quiet && git diff --staged --quiet || (git add data/api-response.jsonl && git commit -m "Append new API response data" && git push)
